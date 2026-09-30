@@ -10,6 +10,8 @@ def _get_ticket_for_comment(user, ticket_id):
 
     if user.role == UserRole.CLIENT and ticket.client_id != user.id:
         raise ForbiddenError("У вас немає доступу до цього звернення")
+    if user.role == UserRole.AGENT and ticket.assignee_id != user.id:
+        raise ForbiddenError("Звернення призначено іншому агенту")
 
     return ticket
 

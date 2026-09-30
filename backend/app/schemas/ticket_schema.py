@@ -11,11 +11,10 @@ class TicketCreateSchema(Schema):
     category_id = fields.Integer(required=True)
 
 
-class TicketUpdateSchema(Schema):
-    status = fields.String(
-        validate=validate.OneOf([s.value for s in TicketStatus])
-    )
+class TicketListSchema(Schema):
+    status = fields.String(validate=validate.OneOf([s.value for s in TicketStatus]))
     priority = fields.String(
         validate=validate.OneOf([p.value for p in TicketPriority])
     )
     assignee_id = fields.Integer()
+    category_id = fields.Integer()

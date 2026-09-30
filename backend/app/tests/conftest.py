@@ -6,9 +6,12 @@ from app.extensions import db as _db
 
 @pytest.fixture()
 def app():
-    application = create_app()
-    application.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
-    application.config["TESTING"] = True
+    application = create_app(
+        {
+            "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+            "TESTING": True,
+        }
+    )
 
     with application.app_context():
         _db.create_all()

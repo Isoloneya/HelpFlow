@@ -2,7 +2,8 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 
 from app.current_user import get_current_user
-from app.schemas.ticket_schema import TicketCreateSchema
+from app.decorators import role_required
+from app.schemas.ticket_schema import TicketCreateSchema, TicketListSchema
 from app.schemas.ticket_update_schema import TicketUpdateSchema
 from app.services import ticket_service
 from app.models import UserRole
@@ -12,6 +13,7 @@ bp = Blueprint("tickets", __name__, url_prefix="/api/tickets")
 
 ticket_create_schema = TicketCreateSchema()
 ticket_update_schema = TicketUpdateSchema()
+ticket_list_schema = TicketListSchema()
 
 
 @bp.route("", methods=["POST"])
@@ -31,7 +33,8 @@ def create_ticket():
 @jwt_required()
 def list_tickets():
     user = get_current_user()
-    tickets = ticket_service.list_tickets(user)
+    filters = ticket_list_schema.load(request.args)
+    tickets = ticket_service.list_tickets(user, filters)
     return jsonify([t.to_dict() for t in tickets]), 200
 
 
@@ -50,3 +53,12 @@ def update_ticket(ticket_id):
     data = ticket_update_schema.load(request.get_json(force=True), partial=True)
     ticket = ticket_service.update_ticket(user, ticket_id, data)
     return jsonify(ticket.to_dict()), 200
+
+
+@bp.route("/escalate", methods=["POST"])
+@role_required(UserRole.ADMIN)
+def escalate():
+    overdue_count, approaching_count = ticket_service.escalate_overdue_tickets()
+    return jsonify(
+        {"escalated_to_urgent": overdue_count, "bumped_to_high": approaching_count}
+    ), 200

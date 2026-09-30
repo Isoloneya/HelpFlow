@@ -75,3 +75,21 @@ def test_unknown_route_returns_json_404(http_client):
 
     assert response.status_code == 404
     assert response.get_json()["error"]["code"] == "NOT_FOUND"
+
+
+def test_me_requires_auth(http_client):
+    response = http_client.get("/api/auth/me")
+    assert response.status_code == 401
+
+
+def test_me_returns_current_user(http_client):
+    payload = {"email": "meroute@example.com", "password": "password123"}
+    http_client.post("/api/auth/register", json=payload)
+    login = http_client.post("/api/auth/login", json=payload).get_json()
+
+    response = http_client.get(
+        "/api/auth/me", headers={"Authorization": f"Bearer {login['access_token']}"}
+    )
+
+    assert response.status_code == 200
+    assert response.get_json()["email"] == "meroute@example.com"
