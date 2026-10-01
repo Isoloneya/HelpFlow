@@ -22,7 +22,7 @@ function Layout({ children }) {
   return (
     <div className="min-h-screen bg-bg text-ink">
       <header className="bg-bar text-bar-ink">
-        <div className="mx-auto flex max-w-[1080px] flex-wrap items-center justify-between gap-4 px-5 py-4">
+        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-4 px-5 py-3.5">
           <Link to="/" className="font-display text-lg font-bold">
             Help<span className="text-bar-accent">Flow</span>
           </Link>
@@ -42,6 +42,19 @@ function Layout({ children }) {
                 Дошка
               </NavLink>
             )}
+            {user?.role === 'admin' && (
+              <NavLink to="/categories" className={navLinkClass}>
+                Категорії
+              </NavLink>
+            )}
+
+            {user?.role === 'admin' && (
+              <NavLink to="/agents" className={navLinkClass}>
+                Агенти
+              </NavLink>
+            )}
+
+
             {user && (
               <>
                 <span className="ml-3 max-w-[140px] truncate font-mono text-xs text-bar-muted sm:max-w-none">
@@ -58,7 +71,7 @@ function Layout({ children }) {
           </nav>
         </div>
       </header>
-      <main className="mx-auto max-w-[1080px] px-5 pb-16 pt-7">{children}</main>
+      <main className="mx-auto max-w-[1440px] px-5 pb-16 pt-8">{children}</main>
     </div>
   )
 }

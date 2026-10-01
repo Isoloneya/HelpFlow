@@ -7,6 +7,10 @@ import ClientDashboardPage from './pages/ClientDashboardPage.jsx'
 import OperatorBoardPage from './pages/OperatorBoardPage.jsx'
 import ClientTicketFormPage from './pages/ClientTicketFormPage.jsx'
 import TicketDetailPage from './pages/TicketDetailPage.jsx'
+import CategoriesPage from './pages/CategoriesPage.jsx'
+import AgentsPage from './pages/AgentsPage.jsx'
+
+
 
 function App() {
   return (
@@ -55,6 +59,22 @@ function App() {
                 </RequireAuth>
               }
             />
+            <Route
+              path="/categories"
+              element={
+                <RequireAuth roles={['admin']}>
+                  <CategoriesPage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/agents"
+              element={
+                <RequireAuth roles={['admin']}>
+                  <AgentsPage />
+                </RequireAuth>
+              }
+            />  
           </Routes>
         </Layout>
       </BrowserRouter>

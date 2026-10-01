@@ -13,7 +13,7 @@ ESCALATION_THRESHOLD = timedelta(hours=2)
 def _least_loaded_agent():
     open_statuses = (TicketStatus.NEW, TicketStatus.IN_PROGRESS)
 
-    agents = User.query.filter(User.role.in_(UserRole.STAFF)).all()
+    agents = User.query.filter_by(role=UserRole.AGENT).all()
     if not agents:
         raise ApiError(
             "Немає доступних агентів для призначення", code="NO_AGENTS_AVAILABLE"
