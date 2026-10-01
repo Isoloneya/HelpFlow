@@ -2,7 +2,7 @@ from flask import Flask, jsonify
 
 from app.config import Config
 from app.extensions import db, migrate, jwt, cors
-from app.models import User, Category, Ticket, Comment
+from app.models import User, Category, Ticket, Comment, Attachment
 from app.error_handlers import register_error_handlers
 from app.cli import register_cli
 

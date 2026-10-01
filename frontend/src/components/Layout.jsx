@@ -57,9 +57,9 @@ function Layout({ children }) {
 
             {user && (
               <>
-                <span className="ml-3 max-w-[140px] truncate font-mono text-xs text-bar-muted sm:max-w-none">
+                <Link to="/profile" className="ml-3 max-w-[140px] truncate font-mono text-xs text-bar-muted hover:text-white sm:max-w-none">
                   {user.email}
-                </span>
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="ml-2 rounded-md border border-white/20 px-3 py-1.5 text-xs font-semibold text-bar-ink transition-colors hover:bg-white/10"

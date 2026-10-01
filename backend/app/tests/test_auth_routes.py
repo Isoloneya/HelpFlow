@@ -45,6 +45,24 @@ def test_register_endpoint_rejects_invalid_email(http_client):
     assert response.status_code == 422
 
 
+def test_demo_role_registration_requires_feature_flag(http_client):
+    response = http_client.post(
+        "/api/auth/register",
+        json={"email": "agentdemo@example.com", "password": "password123", "role": "agent"},
+    )
+    assert response.status_code == 403
+
+
+def test_demo_role_registration_can_create_admin(http_client, app):
+    app.config["ALLOW_DEMO_ROLE_REGISTRATION"] = True
+    response = http_client.post(
+        "/api/auth/register",
+        json={"email": "admindemo@example.com", "password": "password123", "role": "admin"},
+    )
+    assert response.status_code == 201
+    assert response.get_json()["role"] == "admin"
+
+
 def test_login_endpoint_returns_token(http_client):
     payload = {"email": "loginroute@example.com", "password": "password123"}
     http_client.post("/api/auth/register", json=payload)
@@ -93,3 +111,18 @@ def test_me_returns_current_user(http_client):
 
     assert response.status_code == 200
     assert response.get_json()["email"] == "meroute@example.com"
+
+
+def test_current_user_can_update_profile(http_client):
+    payload = {"email": "profile@example.com", "password": "password123"}
+    http_client.post("/api/auth/register", json=payload)
+    login = http_client.post("/api/auth/login", json=payload).get_json()
+
+    response = http_client.patch(
+        "/api/auth/me",
+        json={"full_name": "Олена Коваль"},
+        headers={"Authorization": f"Bearer {login['access_token']}"},
+    )
+
+    assert response.status_code == 200
+    assert response.get_json()["full_name"] == "Олена Коваль"

@@ -11,3 +11,5 @@ class TicketUpdateSchema(Schema):
         validate=validate.OneOf([p.value for p in TicketPriority])
     )
     assignee_id = fields.Integer()
+    category_id = fields.Integer()
+    participant_ids = fields.List(fields.Integer(), validate=validate.Length(min=1, max=20))

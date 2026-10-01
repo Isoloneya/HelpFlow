@@ -9,6 +9,11 @@ class TicketCreateSchema(Schema):
         required=True, validate=validate.Length(min=1, max=5000)
     )
     category_id = fields.Integer(required=True)
+    parent_ticket_id = fields.Integer(load_default=None)
+    priority = fields.String(
+        load_default=TicketPriority.MEDIUM.value,
+        validate=validate.OneOf([p.value for p in TicketPriority]),
+    )
 
 
 class TicketListSchema(Schema):

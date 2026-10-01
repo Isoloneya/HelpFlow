@@ -91,6 +91,14 @@ def test_admin_can_list_staff(http_client, admin_token):
     assert "useradmin@example.com" in emails
 
 
+def test_admin_list_excludes_clients(http_client, admin_token):
+    _register_and_login(http_client, "listedclient@example.com", "password123")
+
+    response = http_client.get("/api/users", headers=_auth_header(admin_token))
+
+    assert "listedclient@example.com" not in [user["email"] for user in response.get_json()]
+
+
 def test_client_cannot_list_staff(http_client, client_token):
     response = http_client.get("/api/users", headers=_auth_header(client_token))
     assert response.status_code == 403
@@ -121,3 +129,25 @@ def test_update_role_rejects_invalid_value(http_client, admin_token):
         headers=_auth_header(admin_token),
     )
     assert response.status_code == 422
+
+
+def test_admin_can_delete_agent_without_tickets(http_client, admin_token):
+    created = http_client.post(
+        "/api/users", json={"email": "deleteagent@example.com"}, headers=_auth_header(admin_token)
+    ).get_json()
+
+    response = http_client.delete(
+        f"/api/users/{created['id']}", headers=_auth_header(admin_token)
+    )
+
+    assert response.status_code == 204
+
+
+def test_admin_cannot_delete_own_account(http_client, admin_token):
+    admin = User.query.filter_by(email="useradmin@example.com").first()
+
+    response = http_client.delete(
+        f"/api/users/{admin.id}", headers=_auth_header(admin_token)
+    )
+
+    assert response.status_code == 400

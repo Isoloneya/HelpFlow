@@ -16,8 +16,9 @@ comment_create_schema = CommentCreateSchema()
 @jwt_required()
 def create_comment(ticket_id):
     user = get_current_user()
-    data = comment_create_schema.load(request.get_json(force=True))
-    comment = comment_service.create_comment(user, ticket_id, data)
+    payload = request.get_json(force=True) if request.is_json else request.form.to_dict()
+    data = comment_create_schema.load(payload)
+    comment = comment_service.create_comment(user, ticket_id, data, request.files.getlist("files"))
     return jsonify(comment.to_dict()), 201
 
 

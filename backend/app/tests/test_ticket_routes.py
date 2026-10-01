@@ -1,3 +1,5 @@
+import io
+
 import pytest
 
 from app.models import User, UserRole, Category
@@ -39,6 +41,9 @@ def category(db):
     cat = Category(name="Технічна підтримка", sla_hours=24)
     db.session.add(cat)
     db.session.commit()
+    for agent in User.query.filter_by(role=UserRole.AGENT).all():
+        agent.categories.append(cat)
+    db.session.commit()
     return cat
 
 
@@ -61,6 +66,30 @@ def test_client_can_create_ticket(http_client, client_token, agent_token, catego
     body = response.get_json()
     assert body["status"] == "new"
     assert body["assignee_id"] is not None
+
+
+def test_client_can_create_ticket_with_attachment(http_client, client_token, agent_token, category, app, tmp_path):
+    app.config["UPLOAD_FOLDER"] = str(tmp_path)
+    response = http_client.post(
+        "/api/tickets",
+        data={
+            "title": "Файл у зверненні",
+            "description": "Опис",
+            "category_id": str(category.id),
+            "priority": "high",
+            "files": (io.BytesIO(b"test attachment"), "details.txt"),
+        },
+        headers=_auth_header(client_token),
+    )
+
+    assert response.status_code == 201
+    attachment = response.get_json()["attachments"][0]
+    download = http_client.get(
+        f"/api/tickets/{response.get_json()['id']}/attachments/{attachment['id']}",
+        headers=_auth_header(client_token),
+    )
+    assert download.status_code == 200
+    assert download.data == b"test attachment"
 
 
 def test_agent_cannot_create_ticket(http_client, agent_token, category):
@@ -121,6 +150,22 @@ def test_client_cannot_update_ticket(http_client, client_token, agent_token, cat
         headers=_auth_header(client_token),
     )
     assert response.status_code == 403
+
+
+def test_client_can_close_own_ticket(http_client, client_token, agent_token, category):
+    created = http_client.post(
+        "/api/tickets",
+        json={"title": "Тікет", "description": "Опис", "category_id": category.id},
+        headers=_auth_header(client_token),
+    ).get_json()
+
+    response = http_client.patch(
+        f"/api/tickets/{created['id']}",
+        json={"status": "closed"},
+        headers=_auth_header(client_token),
+    )
+    assert response.status_code == 200
+    assert response.get_json()["status"] == "closed"
 
 
 def test_assigned_agent_can_update_status(http_client, client_token, agent_token, category):

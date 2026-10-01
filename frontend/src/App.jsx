@@ -9,16 +9,20 @@ import ClientTicketFormPage from './pages/ClientTicketFormPage.jsx'
 import TicketDetailPage from './pages/TicketDetailPage.jsx'
 import CategoriesPage from './pages/CategoriesPage.jsx'
 import AgentsPage from './pages/AgentsPage.jsx'
+import { ToastProvider } from './context/ToastContext.jsx'
+import ProfilePage from './pages/ProfilePage.jsx'
 
 
 
 function App() {
   return (
     <AuthProvider>
+      <ToastProvider>
       <BrowserRouter>
         <Layout>
           <Routes>
             <Route path="/" element={<AuthPage />} />
+            <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
             <Route
               path="/my-tickets"
               element={
@@ -78,6 +82,7 @@ function App() {
           </Routes>
         </Layout>
       </BrowserRouter>
+      </ToastProvider>
     </AuthProvider>
   )
 }

@@ -18,6 +18,13 @@ class TicketPriority(enum.Enum):
     URGENT = "urgent"
 
 
+ticket_participants = db.Table(
+    "ticket_participants",
+    db.Column("ticket_id", db.Integer, db.ForeignKey("tickets.id"), primary_key=True),
+    db.Column("user_id", db.Integer, db.ForeignKey("users.id"), primary_key=True),
+)
+
+
 class Ticket(db.Model):
     __tablename__ = "tickets"
 
@@ -43,6 +50,7 @@ class Ticket(db.Model):
     assignee_id = db.Column(
         db.Integer, db.ForeignKey("users.id"), nullable=True, index=True
     )
+    parent_ticket_id = db.Column(db.Integer, db.ForeignKey("tickets.id"), nullable=True)
     sla_deadline = db.Column(db.DateTime, nullable=False)
     sla_breached = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
@@ -57,6 +65,8 @@ class Ticket(db.Model):
     assignee = db.relationship(
         "User", foreign_keys=[assignee_id], backref="tickets_assigned"
     )
+    parent_ticket = db.relationship("Ticket", remote_side=[id], backref="follow_up_tickets")
+    operators = db.relationship("User", secondary=ticket_participants, backref="participating_tickets")
 
     def to_dict(self):
         return {
@@ -66,10 +76,21 @@ class Ticket(db.Model):
             "status": self.status.value,
             "priority": self.priority.value,
             "category_id": self.category_id,
+            "category_name": self.category.name,
             "client_id": self.client_id,
+            "client_name": self.client.full_name,
+            "client_email": self.client.email,
             "assignee_id": self.assignee_id,
+            "assignee_email": self.assignee.email if self.assignee else None,
+            "participant_ids": [operator.id for operator in self.operators],
+            "participants": [
+                {"id": operator.id, "full_name": operator.full_name, "email": operator.email}
+                for operator in self.operators
+            ],
+            "parent_ticket_id": self.parent_ticket_id,
             "sla_deadline": self.sla_deadline.isoformat(),
             "sla_breached": self.sla_breached,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
+            "attachments": [attachment.to_dict() for attachment in self.attachments if attachment.comment_id is None],
         }

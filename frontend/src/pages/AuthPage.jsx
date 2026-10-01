@@ -25,6 +25,7 @@ function AuthPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
+  const [registrationRole, setRegistrationRole] = useState('agent')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -62,8 +63,9 @@ function AuthPage() {
 
     setSubmitting(true)
     try {
-      const account =
-        mode === 'signin' ? await login(email, password) : await register(email, password)
+      const account = mode === 'signin'
+        ? await login(email, password)
+        : await register(email, password, role === 'operator' ? registrationRole : 'client')
       const isOperatorAccount = account.role !== 'client'
 
       if (role === 'operator' && !isOperatorAccount) {
@@ -131,15 +133,7 @@ function AuthPage() {
           ))}
         </div>
 
-        {isOperatorSignup ? (
-          <div className="rounded-xl bg-sunken p-4 text-xs leading-relaxed text-muted">
-            <strong className="text-ink">Реєстрація оператора закрита.</strong>
-            <br />
-            Обліковий запис оператора створює адміністратор команди. Зверніться до вашого
-            адміністратора HelpFlow, щоб отримати доступ.
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit}>
             <div className="mb-3.5">
               <label className="mb-1.5 block text-xs font-semibold text-muted">Email</label>
               <input
@@ -163,7 +157,9 @@ function AuthPage() {
               />
             </div>
             {mode === 'signup' && (
-              <div className="mb-3.5">
+              <>
+                {isOperatorSignup && <div className="mb-3.5"><label className="mb-1.5 block text-xs font-semibold text-muted">Роль у демо</label><select value={registrationRole} onChange={(event) => setRegistrationRole(event.target.value)} className={inputClass}><option value="agent">Агент</option><option value="admin">Адміністратор</option></select><p className="mt-1.5 text-[11px] text-muted">Доступно лише коли на backend увімкнено демо-режим.</p></div>}
+                <div className="mb-3.5">
                 <label className="mb-1.5 block text-xs font-semibold text-muted">
                   Підтвердження пароля
                 </label>
@@ -176,7 +172,8 @@ function AuthPage() {
                   className={inputClass}
                 />
                 <p className="mt-1.5 text-[11px] text-muted">Мінімум 8 символів</p>
-              </div>
+                </div>
+              </>
             )}
             {error && (
               <p role="alert" className="mb-3.5 text-[13px] text-breach">
@@ -191,7 +188,6 @@ function AuthPage() {
               {submitting ? 'Зачекайте...' : mode === 'signin' ? 'Увійти' : 'Створити акаунт'}
             </button>
           </form>
-        )}
       </div>
     </div>
   )

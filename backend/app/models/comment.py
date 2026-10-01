@@ -22,5 +22,6 @@ class Comment(db.Model):
             "author_id": self.author_id,
             "body": self.body,
             "is_internal": self.is_internal,
+            "attachments": [attachment.to_dict() for attachment in self.attachments],
             "created_at": self.created_at.isoformat(),
         }

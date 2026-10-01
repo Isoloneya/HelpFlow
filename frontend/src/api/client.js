@@ -13,9 +13,9 @@ export function clearToken() {
   localStorage.removeItem(TOKEN_KEY)
 }
 
-async function request(path, { method = 'GET', body } = {}) {
+async function request(path, { method = 'GET', body, isFormData = false } = {}) {
   const headers = {}
-  if (body !== undefined) {
+  if (body !== undefined && !isFormData) {
     headers['Content-Type'] = 'application/json'
   }
 
@@ -27,7 +27,7 @@ async function request(path, { method = 'GET', body } = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: body !== undefined ? (isFormData ? body : JSON.stringify(body)) : undefined,
   })
 
   const data = await response.json().catch(() => null)
@@ -47,6 +47,18 @@ async function request(path, { method = 'GET', body } = {}) {
 export const api = {
   get: (path) => request(path, { method: 'GET' }),
   post: (path, body) => request(path, { method: 'POST', body }),
+  postForm: (path, body) => request(path, { method: 'POST', body, isFormData: true }),
   patch: (path, body) => request(path, { method: 'PATCH', body }),
   delete: (path) => request(path, { method: 'DELETE' }),
+  download: async (path) => {
+    const headers = {}
+    const token = getToken()
+    if (token) headers.Authorization = `Bearer ${token}`
+    const response = await fetch(`${API_BASE_URL}${path}`, { headers })
+    if (!response.ok) {
+      const data = await response.json().catch(() => null)
+      throw new Error(data?.error?.message || 'Не вдалося завантажити файл')
+    }
+    return response.blob()
+  },
 }

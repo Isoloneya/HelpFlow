@@ -45,7 +45,7 @@ def delete_category(category_id):
     if category is None:
         raise NotFoundError("Категорію не знайдено")
 
-    if category.has_active_tickets():
+    if category.has_tickets():
         category.is_archived = True
         db.session.commit()
         return category

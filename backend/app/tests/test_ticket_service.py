@@ -24,6 +24,9 @@ def _make_category(db, sla_hours=24, name="Загальні питання"):
     category = Category(name=name, sla_hours=sla_hours)
     db.session.add(category)
     db.session.commit()
+    for agent in User.query.filter_by(role=UserRole.AGENT).all():
+        agent.categories.append(category)
+    db.session.commit()
     return category
 
 
@@ -100,3 +103,18 @@ def test_third_ticket_still_balances_load(db):
 
     assert counts[agent_a.id] == 2
     assert counts[agent_b.id] == 2
+
+
+def test_ticket_is_assigned_to_agent_not_admin(db):
+    client = _make_client(db)
+    admin = User(email="admin@example.com", role=UserRole.ADMIN, password_hash="x")
+    db.session.add(admin)
+    db.session.commit()
+    agent = _make_agent(db, "onlyagent@example.com")
+    category = _make_category(db)
+
+    ticket = ticket_service.create_ticket(
+        client, {"title": "Тікет", "description": "Опис", "category_id": category.id}
+    )
+
+    assert ticket.assignee_id == agent.id

@@ -9,14 +9,12 @@ class Category(db.Model):
     sla_hours = db.Column(db.Integer, nullable=False)
     is_archived = db.Column(db.Boolean, nullable=False, default=False)
 
-    def has_active_tickets(self):
-        from app.models.ticket import Ticket, TicketStatus
+    def has_tickets(self):
+        from app.models.ticket import Ticket
 
-        active_statuses = (TicketStatus.NEW, TicketStatus.IN_PROGRESS)
         return (
             Ticket.query.filter(
                 Ticket.category_id == self.id,
-                Ticket.status.in_(active_statuses),
             ).count()
             > 0
         )
@@ -27,4 +25,5 @@ class Category(db.Model):
             "name": self.name,
             "sla_hours": self.sla_hours,
             "is_archived": self.is_archived,
+            "ticket_count": len(self.tickets),
         }

@@ -122,3 +122,31 @@ def test_delete_category_with_active_tickets_archives_it(http_client, admin_toke
     )
     assert response.status_code == 200
     assert response.get_json()["is_archived"] is True
+
+
+def test_delete_category_with_resolved_ticket_archives_it(http_client, admin_token, client_token):
+    category = http_client.post(
+        "/api/categories",
+        json={"name": "Архівна категорія", "sla_hours": 10},
+        headers=_auth_header(admin_token),
+    ).get_json()
+    agent_token = _register_and_login(
+        http_client, "resolvedagent@example.com", "password123", UserRole.AGENT
+    )
+    ticket = http_client.post(
+        "/api/tickets",
+        json={"title": "Тікет", "description": "Опис", "category_id": category["id"]},
+        headers=_auth_header(client_token),
+    ).get_json()
+    http_client.patch(
+        f"/api/tickets/{ticket['id']}",
+        json={"status": "resolved"},
+        headers=_auth_header(agent_token),
+    )
+
+    response = http_client.delete(
+        f"/api/categories/{category['id']}", headers=_auth_header(admin_token)
+    )
+
+    assert response.status_code == 200
+    assert response.get_json()["is_archived"] is True
