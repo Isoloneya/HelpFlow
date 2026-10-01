@@ -124,7 +124,7 @@ flask --app run:app create-admin admin@example.com
 
 ## Підготовка до розгортання
 
-Backend потребує Python-хостинг із PostgreSQL, наприклад Render або Railway. У production необхідно задати `DATABASE_URL`, `JWT_SECRET_KEY`, `CORS_ORIGINS` і `FLASK_ENV=production`; після цього виконати `flask --app run:app db upgrade` та створити першого адміністратора через `flask --app run:app create-admin admin@example.com`. Production-команда запуску backend: `gunicorn run:app` з робочою директорією `backend`.
+Проєкт налаштований як Vercel multi-service: `backend` — Flask API, доступний лише за `/api/*`; `frontend` — Vite SPA для всіх інших шляхів. Backend і frontend працюють на одному домені, тому frontend за замовчуванням звертається до `/api`. У Vercel потрібно задати `DATABASE_URL`, `JWT_SECRET_KEY`, `CORS_ORIGINS` і `FLASK_ENV=production` для backend.
 
 Для тестового демо можна додати `ALLOW_DEMO_ROLE_REGISTRATION=true`. Тоді вкладка «Оператор → Реєстрація» дозволяє створювати агентів і адміністраторів. У реальному середовищі змінна має бути `false`.
 
